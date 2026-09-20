@@ -21,9 +21,28 @@ import { detectLayoutChange } from "./layout.js";
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
+function allowedOrigins() {
+  return new Set([
+    ...config.corsOrigin.split(",").map((item) => item.trim()).filter(Boolean),
+    "https://i-ne-gamma.vercel.app",
+    "http://localhost:5173",
+  ]);
+}
+
 app.use(
   cors({
-    origin: config.corsOrigin.split(",").map((item) => item.trim()),
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      try {
+        const host = new URL(origin).hostname;
+        if (allowedOrigins().has(origin) || host.endsWith(".vercel.app")) {
+          return callback(null, true);
+        }
+      } catch {
+        /* ignore */
+      }
+      return callback(null, false);
+    },
   })
 );
 
