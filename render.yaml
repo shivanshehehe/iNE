@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: storewatch-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: HEADLESS
+        value: "true"
+      - key: NODE_ENV
+        value: production
+      - key: STORE_URL
+        value: https://demo.inelabteamdev.com
+      - key: DEFAULT_SCRAPE_INTERVAL_MINUTES
+        value: "120"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false

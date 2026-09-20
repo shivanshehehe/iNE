@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.env.local
+.DS_Store
+backend/recordings
+backend/test-results
+frontend/dist
+playwright-report
+*.log
+.vercel
+.supabase
+.playwright
+backend/.cache
