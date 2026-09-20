@@ -1,0 +1,17 @@
+name: scheduled-scrape
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake and scrape
+        run: |
+          curl -fsS -m 30 https://storewatch-api.onrender.com/api/health || true
+          sleep 15
+          curl -fsS -m 120 -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
+            https://storewatch-api.onrender.com/api/cron/scrape
