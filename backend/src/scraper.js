@@ -5,10 +5,17 @@ import { parseMoney, parseStock } from "./parse.js";
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function launchBrowser({ headed = !config.headless, recordDir } = {}) {
+  const hasDisplay = Boolean(process.env.DISPLAY);
+  const isHeaded = headed || hasDisplay;
   const browser = await chromium.launch({
-    headless: !headed,
-    slowMo: headed ? (recordDir ? 220 : 80) : 0,
-    args: ["--disable-dev-shm-usage", "--no-sandbox"],
+    headless: !isHeaded,
+    slowMo: recordDir ? 220 : 0,
+    args: [
+      "--disable-dev-shm-usage",
+      "--no-sandbox",
+      "--disable-gpu",
+      "--disable-software-rasterizer",
+    ],
   });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 },
@@ -39,16 +46,20 @@ async function dismissCookies(page, steps) {
 async function hoverPriceBlock(page, steps) {
   const block = page.locator(".price-block").first();
   await block.waitFor({ state: "visible", timeout: 30000 });
+  await block.scrollIntoViewIfNeeded();
   const box = await block.boundingBox();
-  if (!box) throw new Error("Price block has no bounding box");
+  if (!box || box.width < 10 || box.height < 10) {
+    throw new Error("Price block has no usable bounding box");
+  }
 
-  steps.push("Hovering price block with real mouse movement");
+  steps.push(`Hovering price block at ${Math.round(box.x)},${Math.round(box.y)} ${Math.round(box.width)}x${Math.round(box.height)}`);
+  await block.hover({ force: true }).catch(() => {});
   await page.mouse.move(box.x + 12, box.y + 10);
-  for (let i = 0; i < 14; i += 1) {
-    await page.mouse.move(box.x + 16 + i * 9, box.y + 12 + (i % 4) * 5, { steps: 2 });
+  for (let i = 0; i < 16; i += 1) {
+    await page.mouse.move(box.x + 18 + i * 8, box.y + 14 + (i % 5) * 4, { steps: 3 });
     await sleep(50);
   }
-  await sleep(700);
+  await sleep(800);
 }
 
 async function clickReveal(page, steps) {

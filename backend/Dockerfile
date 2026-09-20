@@ -13,4 +13,4 @@ COPY src ./src
 COPY scripts ./scripts
 
 EXPOSE 10000
-CMD ["node", "src/index.js"]
+CMD ["xvfb-run", "-a", "--server-args=-screen 0 1280x800x24", "node", "src/index.js"]
